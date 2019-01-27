@@ -84,3 +84,6 @@ class TrackedDataLoader(Trackable, ABC):
         for batch in self._data_loader:
             self.step_counter += 1
             yield cast(Dict[str, torch.Tensor], batch)
+
+    def __len__(self):
+        return len(self.dataset)

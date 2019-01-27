@@ -4,9 +4,9 @@ from typing import Tuple, Type
 import torch
 from torch import nn
 from torch.optim import Optimizer
-from torch.utils.data import Dataset
 
 from toolbox.trackable import Trackable
+from toolbox.tracked_data_loader import TrackedDataLoader
 
 
 class CallBack(Trackable, ABC):
@@ -71,19 +71,26 @@ class CallBack(Trackable, ABC):
             prediction: The prediction made in this batch
         """
 
-    def on_train_begin(self, model: nn.Module, train_dataset: Dataset,
+    def on_train_begin(self, model: nn.Module, train_loader: TrackedDataLoader,
                        opt_class: Type[Optimizer], opt_config: dict,
-                       train_loader_config: dict, epochs: int, gpu: bool,
+                       epochs: int, device: torch.device,
                        save_optimizer: bool) -> None:
         """
         Called at the beginning of training
         Args:
             model: The model to be trained
-            train_dataset: The dataset used for training
+            train_loader: Training data loader
             opt_class: The optimizer class
             opt_config: The optimizer config
-            train_loader_config: The DataLoader config
             epochs: How many epochs to train
-            gpu: Whether use GPU or not
+            device: Where the model will run
             save_optimizer: Whether save optimizer states or not on check point
+        """
+
+    def on_train_end(self, model: nn.Module, epochs: int) -> None:
+        """
+        Called at the end of training
+        Args:
+            model: The model trained
+            epochs: How many epochs actually elapsed
         """

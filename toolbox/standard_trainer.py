@@ -1,4 +1,5 @@
 import os
+from abc import ABC
 
 import torch
 from torch import nn
@@ -7,9 +8,34 @@ from torch.utils.data import DataLoader
 from toolbox.misc import save_model
 from toolbox.progress_bar import ProgressBar
 from toolbox.states import Trackable, TorchState, State, save_on_interrupt
+from toolbox.trainer_base import BaseTrainer
 
 
-class StandardTrainer(Trackable):
+class StandardTrainer(BaseTrainer, ABC):
+
+    def train_one_epoch(self) -> None:
+        self.model.train()
+        total_steps = len(self.train_loader)
+        for batch in self.train_loader.next_epoch():
+            ipt, target = self.parse_train_batch(batch)
+            self.trigger_call_backs('on_train_batch_begin',
+                                    curr_step=self._curr_step,
+                                    total_steps=total_steps,
+                                    batch=(ipt, target))
+            output = self.model(ipt)
+            loss = self.loss_fn(output, target)
+            self._optimizer.zero_grad()
+            loss.backward()
+            # TODO: Add support for closure
+            self._optimizer.step()
+            self._curr_step += 1
+            self.trigger_call_backs('on_train_batch_end',
+                                    curr_step=self._curr_step,
+                                    total_steps=total_steps, loss=loss)
+        self._curr_step = 0
+
+
+class STrainer(Trackable):
     def __init__(self, model: nn.Module, train_dataset, valid_dataset,
                  optimizer_cls, save_dir, optimizer_config: dict,
                  train_loader_config: dict, inference_loader_config: dict,

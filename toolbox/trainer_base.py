@@ -8,17 +8,17 @@ from torch.optim import Optimizer
 
 from toolbox.callbacks.callback_base import CallBack
 from toolbox.metrics.metrics_base import Metrics
-from toolbox.trackable import Trackable, serialize_list, deserialize_state, \
-    deserialize_list
+from toolbox.trackable import (Trackable, serialize_list, deserialize_state,
+                               deserialize_list)
 from toolbox.tracked_data_loader import TrackedDataLoader
 
 
 @dataclass
-class Trainer(Trackable, ABC):
+class BaseTrainer(Trackable, ABC):
     model: nn.Module
     train_loader: TrackedDataLoader
     valid_loader: TrackedDataLoader
-    opt_class: Type
+    opt_class: Type[Optimizer]
     opt_config: dict
     device: torch.device
     save_optimizer: bool = True
@@ -27,7 +27,7 @@ class Trainer(Trackable, ABC):
     metrics: List[Metrics] = field(default_factory=list)
     _terminate: bool = field(init=False, default=False)
     _curr_epochs: int = field(init=False, default=0)
-    _curr_steps: int = field(init=False, default=0)
+    _curr_step: int = field(init=False, default=0)
     _optimizer: Optional[Optimizer] = field(init=False, default=None)
 
     def __post_init__(self):
@@ -62,7 +62,7 @@ class Trainer(Trackable, ABC):
 
     @staticmethod
     def deserialize(state: Dict[str, Any], strict: bool = False,
-                    model: Optional[nn.Module] = None) -> 'Trainer':
+                    model: Optional[nn.Module] = None) -> 'BaseTrainer':
         """
         Load the Trainer from a serialized dictionary
         Args:
@@ -103,11 +103,12 @@ class Trainer(Trackable, ABC):
                     if isinstance(v, torch.Tensor):
                         state[k] = v.to(device)
             save_optimizer = True
-        trainer = Trainer(model, train_loader, valid_loader, opt_class,
-                          opt_config, device, save_optimizer, progress_bar_size,
-                          call_backs, metrics)
+        trainer = BaseTrainer(model, train_loader, valid_loader, opt_class,
+                              opt_config, device, save_optimizer,
+                              progress_bar_size,
+                              call_backs, metrics)
         trainer._curr_epochs = _curr_epochs
-        trainer._curr_steps = _curr_steps
+        trainer._curr_step = _curr_steps
         if _optimizer is not None:
             trainer._optimizer = _optimizer
         return trainer
@@ -150,6 +151,16 @@ class Trainer(Trackable, ABC):
         """
 
     @abstractmethod
+    def train_one_epoch(self) -> None:
+        """
+        Run training for one epoch
+        """
+
+    def trigger_call_backs(self, method_name: str, **kwargs: Any) -> None:
+        for call_back in self.call_backs:
+            assert hasattr(call_back, method_name)
+            getattr(call_back, method_name)(*args, **kwargs)
+
     def train(self, epochs: int) -> nn.Module:
         """
         Train function
@@ -159,3 +170,30 @@ class Trainer(Trackable, ABC):
         Returns:
             Trained model
         """
+        # Make sure the record in trainer matches up with train_loader
+        assert self._curr_step == self.train_loader.step_counter
+        self.trigger_call_backs('on_train_begin', model=self.model,
+                                train_loader=self.train_loader,
+                                opt_class=self.opt_class,
+                                opt_config=self.opt_config, epochs=epochs,
+                                device=self.device,
+                                save_optimizer=self.save_optimizer)
+
+        # Create an optimizer if not already created
+        if self._optimizer is None:
+            self._optimizer = self.opt_class(
+                filter(lambda p: p.requires_grad, self.model.parameters()),
+                **self.opt_config)
+            # Manually moving optimizer state to device
+            # https://github.com/pytorch/pytorch/issues/2830#issuecomment-336194949
+            for state in self._optimizer.state.values():
+                for k, v in state.items():
+                    if isinstance(v, torch.Tensor):
+                        state[k] = v.to(self.device)
+
+        while self._curr_epochs < epochs and (not self._terminate):
+            self.train_one_epoch()
+            self._curr_epochs += 1
+
+        self.trigger_call_backs('on_train_end', model=self.model, epochs=epochs)
+        return self.model
