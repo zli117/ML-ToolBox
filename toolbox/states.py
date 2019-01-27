@@ -82,7 +82,7 @@ class Trackable(State):
             if not (attr_name in self._state_dict):
                 print('attribute %s is not part of the object' % attr_name)
                 continue
-            value = self._state_dict[attr_name].load(value)
+            value = self._state_dict[attr_name].deserialize(value)
             self.__dict__[attr_name] = value
         self._restored = True
         return self

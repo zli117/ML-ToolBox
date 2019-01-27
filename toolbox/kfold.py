@@ -4,7 +4,7 @@ import numpy as np
 from sklearn.model_selection import KFold
 
 from toolbox.states import Trackable, State, save_on_interrupt
-from toolbox.train import TrackedTraining
+from toolbox.train import TrackedTrainer
 
 
 class TrackedKFold(Trackable):
@@ -28,7 +28,7 @@ class TrackedKFold(Trackable):
     def history(self):
         return self.results
 
-    def get_train_obj(self, train_idx) -> TrackedTraining:
+    def get_train_obj(self, train_idx) -> TrackedTrainer:
         pass
 
     def test(self, test_idx):
