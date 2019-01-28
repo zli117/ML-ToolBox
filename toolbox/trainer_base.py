@@ -190,7 +190,7 @@ class BaseTrainer(Trackable, ABC):
             while self._curr_epochs < epochs and (not self._terminate):
                 self.train_one_epoch()
                 self._curr_epochs += 1
-        except Exception as e:
+        except BaseException as e:
             self.trigger_call_backs('on_exception', exception=e)
 
         self.trigger_call_backs('on_train_end', model=self.model, epochs=epochs)

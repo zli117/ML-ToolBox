@@ -95,7 +95,7 @@ class CallBack(Trackable, ABC):
             epochs: How many epochs actually elapsed
         """
 
-    def on_exception(self, exception: Exception) -> None:
+    def on_exception(self, exception: BaseException) -> None:
         """
         Called when there's an exception during training loop
         Args:
