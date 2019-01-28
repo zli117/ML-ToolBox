@@ -160,7 +160,7 @@ class BaseTrainer(Trackable, ABC):
     def trigger_call_backs(self, method_name: str, **kwargs: Any) -> None:
         for call_back in self.call_backs:
             assert hasattr(call_back, method_name)
-            getattr(call_back, method_name)(*args, **kwargs)
+            getattr(call_back, method_name)(**kwargs)
 
     def train(self, epochs: int) -> nn.Module:
         """
