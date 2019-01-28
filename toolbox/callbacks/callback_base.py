@@ -10,6 +10,22 @@ from toolbox.tracked_data_loader import TrackedDataLoader
 
 
 class CallBack(Trackable, ABC):
+    def on_train_epoch_begin(self, curr_epoch: int, total_epochs: int) -> None:
+        """
+        Called at the beginning of each training epoch
+        Args:
+            curr_epoch: The index of current epoch
+            total_epochs: Total number of epochs
+        """
+
+    def on_train_epoch_end(self, curr_epoch: int, total_epochs: int) -> None:
+        """
+        Called at the end of each training epoch, but before validation
+        Args:
+            curr_epoch: The index of current epoch
+            total_epochs: The number of total epochs
+        """
+
     def on_train_batch_begin(self, curr_step: int, total_steps: int,
                              batch: Tuple[torch.Tensor, torch.Tensor]) -> None:
         """
@@ -42,13 +58,13 @@ class CallBack(Trackable, ABC):
         """
 
     def on_valid_batch_end(self, current_step: int, total_steps: int,
-                           *metrics: torch.Tensor) -> None:
+                           metrics: Tuple[torch.Tensor]) -> None:
         """
         Called at the end of a validation batch
         Args:
             current_step: the current step
             total_steps: Total steps for validation
-            *metrics: The metrics returned by validation metrics function
+            metrics: The metrics returned by validation metrics function
         """
 
     def on_pred_batch_begin(self, current_step: int, total_steps: int,
