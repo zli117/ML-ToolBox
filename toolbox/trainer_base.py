@@ -188,7 +188,13 @@ class BaseTrainer(Trackable, ABC):
 
         try:
             while self._curr_epochs < epochs and (not self._terminate):
+                self.trigger_call_backs('on_train_epoch_begin',
+                                        curr_epoch=self._curr_epochs,
+                                        total_epochs=epochs)
                 self.train_one_epoch()
+                self.trigger_call_backs('on_train_epoch_end',
+                                        curr_epoch=self._curr_epochs,
+                                        total_epochs=epochs)
                 self._curr_epochs += 1
         except BaseException as e:
             self.trigger_call_backs('on_exception', exception=e)
