@@ -94,3 +94,10 @@ class CallBack(Trackable, ABC):
             model: The model trained
             epochs: How many epochs actually elapsed
         """
+
+    def on_exception(self, exception: Exception) -> None:
+        """
+        Called when there's an exception during training loop
+        Args:
+            exception: The exception type
+        """

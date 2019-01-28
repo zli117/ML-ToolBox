@@ -1,11 +1,12 @@
 import datetime
 import sys
 import time
+from typing import Any
 
 
 class ProgressBar:
-    def __init__(self, length: int, frmt: str, eta=True,
-                 max_normalize_steps=20):
+    def __init__(self, length: int, frmt: str, eta: bool = True,
+                 max_normalize_steps: int = 20):
         self.length = length
         self.max_normalize_steps = max_normalize_steps
         self.eta = eta
@@ -19,7 +20,7 @@ class ProgressBar:
         self.prev_percent = None
         self.reset()
 
-    def progress(self, percent: float, *info):
+    def progress(self, percent: float, *info: Any) -> None:
         if self.prev_percent is not None and percent == self.prev_percent:
             print('Error: Did not update percentage')
             return
@@ -40,7 +41,7 @@ class ProgressBar:
         sys.stdout.write(' ' * 10)
         sys.stdout.flush()
 
-    def reset(self):
+    def reset(self) -> None:
         self.queue = [0] * self.max_normalize_steps
         self.step = 0
         self.prev_time = time.time()
