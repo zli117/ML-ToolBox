@@ -4,7 +4,7 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader
 
-from toolbox.misc import save_model, cuda
+from toolbox.utils.misc import save_model, cuda
 from toolbox.progress_bar import ProgressBar
 from toolbox.states import Trackable, TorchState, State, save_on_interrupt
 

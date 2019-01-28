@@ -11,6 +11,7 @@ from toolbox.metrics.metrics_base import Metrics
 from toolbox.trackable import (Trackable, serialize_list, deserialize_state,
                                deserialize_list)
 from toolbox.tracked_data_loader import TrackedDataLoader
+from toolbox.utils.torch_utils import get_trainable_parameters
 
 
 @dataclass
@@ -94,7 +95,7 @@ class BaseTrainer(Trackable, ABC):
         _optimizer = None
         if '_optimizer' in state:
             _optimizer = opt_class(
-                filter(lambda p: p.requires_grad, model.parameters()),
+                get_trainable_parameters(model),
                 **opt_config)
             # Manually moving optimizer state to device
             # https://github.com/pytorch/pytorch/issues/2830#issuecomment-336194949
@@ -182,14 +183,8 @@ class BaseTrainer(Trackable, ABC):
         # Create an optimizer if not already created
         if self._optimizer is None:
             self._optimizer = self.opt_class(
-                filter(lambda p: p.requires_grad, self.model.parameters()),
+                get_trainable_parameters(self.model),
                 **self.opt_config)
-            # Manually moving optimizer state to device
-            # https://github.com/pytorch/pytorch/issues/2830#issuecomment-336194949
-            for state in self._optimizer.state.values():
-                for k, v in state.items():
-                    if isinstance(v, torch.Tensor):
-                        state[k] = v.to(self.device)
 
         while self._curr_epochs < epochs and (not self._terminate):
             self.train_one_epoch()
