@@ -5,15 +5,15 @@ from typing import Any, List
 
 
 class ProgressBar:
-    def __init__(self, length: int, frmt: str, eta: bool = True,
+    def __init__(self, length: int, fmt: str, eta: bool = True,
                  max_normalize_steps: int = 20):
         self.length = length
         self.max_normalize_steps = max_normalize_steps
         self.eta = eta
         if eta:
-            self.bar_format = '[%%-%ds](eta: %%s)%s' % (length, frmt)
+            self.bar_format = '[%%-%ds](eta: %%s)%s' % (length, fmt)
         else:
-            self.bar_format = '[%%-%ds]%s' % (length, frmt)
+            self.bar_format = '[%%-%ds]%s' % (length, fmt)
         self.queue: List[float] = []
         self.step: int = 0
         self.prev_time: float = 0.0
