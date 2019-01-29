@@ -1,4 +1,3 @@
-from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Type, Dict, Tuple, List, Optional, Any
 
@@ -15,7 +14,7 @@ from toolbox.utils.torch_utils import get_trainable_parameters
 
 
 @dataclass
-class BaseTrainer(Trackable, ABC):
+class BaseTrainer(Trackable):
     model: nn.Module
     train_loader: TrackedDataLoader
     valid_loader: TrackedDataLoader
@@ -40,12 +39,15 @@ class BaseTrainer(Trackable, ABC):
     def add_metrics(self, metrics: Metrics) -> None:
         self.metrics.append(metrics)
 
+    def add_call_backs(self, call_back: CallBack) -> None:
+        self.call_backs.append(call_back)
+
     def serialize(self) -> Dict[str, Any]:
         serialized = super().serialize()
         self.model.cpu()
         serialized['model'] = (self.model.__class__, self.model.state_dict())
         self.model.to(self.device)
-        if self.save_optimizer:
+        if self.save_optimizer and self._optimizer is not None:
             serialized['_optimizer'] = self._optimizer.state_dict()
         serialized = self.serialize_trackable_attrs(serialized,
                                                     ['train_loader',
@@ -75,12 +77,12 @@ class BaseTrainer(Trackable, ABC):
         Returns:
             Loaded Trainer
         """
-        train_loader = deserialize_state(state['train_loader'],
-                                         cast_to=TrackedDataLoader)
-        valid_loader = deserialize_state(state['valid_loader'],
-                                         cast_to=TrackedDataLoader)
-        call_backs = deserialize_list(state['call_backs'], cast_to=CallBack)
-        metrics = deserialize_list(state['metrics'], cast_to=Metrics)
+        train_loader: TrackedDataLoader = deserialize_state(
+            state['train_loader'])
+        valid_loader: TrackedDataLoader = deserialize_state(
+            state['valid_loader'])
+        call_backs: List[CallBack] = deserialize_list(state['call_backs'])
+        metrics: List[Metrics] = deserialize_list(state['metrics'])
         opt_class = state['opt_class']
         opt_config = state['opt_config']
         device = state['device']
@@ -92,7 +94,7 @@ class BaseTrainer(Trackable, ABC):
             model = model_cls()
         model.load_state_dict(model_state, strict=strict)
         save_optimizer = False
-        _optimizer = None
+        _optimizer: Optional[Optimizer] = None
         if '_optimizer' in state:
             _optimizer = opt_class(
                 get_trainable_parameters(model),
@@ -114,7 +116,6 @@ class BaseTrainer(Trackable, ABC):
             trainer._optimizer = _optimizer
         return trainer
 
-    @abstractmethod
     def parse_train_batch(self, batch: Dict[str, torch.Tensor]) \
             -> Tuple[torch.Tensor, torch.Tensor]:
         """
@@ -125,6 +126,7 @@ class BaseTrainer(Trackable, ABC):
         Returns:
             input and target for this batch
         """
+        return torch.Tensor(0), torch.Tensor(0)
 
     def parse_valid_batch(self, batch: Dict[str, torch.Tensor]) \
             -> Tuple[torch.Tensor, torch.Tensor]:
@@ -138,7 +140,6 @@ class BaseTrainer(Trackable, ABC):
         """
         return self.parse_train_batch(batch)
 
-    @abstractmethod
     def loss_fn(self, output: torch.Tensor,
                 target: torch.Tensor) -> torch.Tensor:
         """
@@ -150,8 +151,8 @@ class BaseTrainer(Trackable, ABC):
         Returns:
             The loss
         """
+        return torch.Tensor(0)
 
-    @abstractmethod
     def train_one_epoch(self) -> None:
         """
         Run training for one epoch
@@ -187,7 +188,7 @@ class BaseTrainer(Trackable, ABC):
                 **self.opt_config)
 
         try:
-            while self._curr_epochs < epochs and (not self._terminate):
+            while self._curr_epochs < epochs and not self._terminate:
                 self.trigger_call_backs('on_train_epoch_begin',
                                         curr_epoch=self._curr_epochs,
                                         total_epochs=epochs)

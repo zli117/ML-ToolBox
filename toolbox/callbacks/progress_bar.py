@@ -20,8 +20,9 @@ class ProgressBarCB(CallBack):
 
     def on_train_batch_end(self, curr_step: int, total_steps: int,
                            loss: torch.Tensor):
-        self._progress_bar.progress(curr_step / total_steps * 100, loss,
-                                    self._curr_epoch)
+        if self._progress_bar is not None:
+            self._progress_bar.progress(curr_step / total_steps * 100, loss,
+                                        self._curr_epoch)
 
     def on_train_epoch_end(self, curr_epoch: int, total_epochs: int):
         # Print a new line at the end of each epoch

@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Dict, Any, Type, TypeVar, cast
+from typing import List, Dict, Any, TypeVar, cast, Sequence
 
 
 class Trackable(ABC):
@@ -58,22 +58,20 @@ class Trackable(ABC):
     # pytype: enable=bad-return-type
 
 
-def serialize_list(lst: List[Trackable]) -> List[Dict[str, Any]]:
+def serialize_list(lst: Sequence[Trackable]) -> Sequence[Dict[str, Any]]:
     return list(map(lambda t: t.serialize(), lst))
 
 
 T = TypeVar('T', bound=Trackable)
 
 
-def deserialize_state(state: Dict[str, Any],
-                      cast_to: Type[T] = Trackable) -> T:
+def deserialize_state(state: Dict[str, Any]) -> T:
     assert '__class__' in state
     cls = state['__class__']
     assert issubclass(cls, Trackable)
     obj = cls.deserialize(state)
-    return cast(cast_to, obj)
+    return cast(T, obj)
 
 
-def deserialize_list(lst: List[Dict[str, Any]],
-                     cast_to: Type[T] = Trackable) -> List[T]:
-    return list(map(lambda state: deserialize_state(state, cast_to), lst))
+def deserialize_list(lst: List[Dict[str, Any]]) -> List[T]:
+    return [deserialize_state(state) for state in lst]

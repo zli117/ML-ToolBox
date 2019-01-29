@@ -61,10 +61,10 @@ class TrackedDataLoader(Trackable):
 
     @staticmethod
     def deserialize(state: dict, strict: bool = False) -> 'TrackedDataLoader':
-        dataset = cast(TrackedDataset, deserialize_state(state['dataset']))
-        loader_config = state['loader_config']
-        step_counter = state['step_counter']
-        init_index = state['init_index']
+        dataset: TrackedDataset = deserialize_state(state['dataset'])
+        loader_config: Dict[str, Any] = state['loader_config']
+        step_counter: int = state['step_counter']
+        init_index: List[int] = state['init_index']
         # pytype: disable=wrong-arg-count
         return TrackedDataLoader(dataset, loader_config, step_counter,
                                  init_index)
