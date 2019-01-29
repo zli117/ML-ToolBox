@@ -1,3 +1,4 @@
+import os
 import sys
 from subprocess import Popen
 
@@ -6,10 +7,10 @@ with open('requirements.txt', 'r') as f:
 
 
 def install(packages):
-    for package in packages:
-        process = Popen(['pip', 'install', '--progress-bar', 'off', package])
-        print(process.args)
-        process.wait()
+    with open(os.devnull, 'w') as fp:
+        for package in packages:
+            process = Popen(['pip', 'install', package], stdout=fp)
+            process.wait()
 
 
 if __name__ == '__main__':
