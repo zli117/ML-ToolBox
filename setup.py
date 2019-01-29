@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import sys
-from distutils.core import setup
+from setuptools import setup, find_packages
 
 requirements = [
     'torch'
@@ -25,7 +25,7 @@ setup(name='ML-ToolBox',
       author='Zonglin Li',
       author_email='development.my6565@gmail.com',
       url='https://github.com/zli117/ML-ToolBox',
-      packages=['toolbox'],
+      packages=find_packages(exclude=('test',)),
       install_requires=requirements,
       extras_require=dev_requirements,
       tests_require=test_requirements,
