@@ -2,7 +2,8 @@ language: python
 python:
   - '3.6'
 install:
-  - pip install . '.[dev]' >> /dev/null
+  - pip install --upgrade pip
+  - pip install --progress-bar off . '.[dev]'
 
 script:
   - pytest
