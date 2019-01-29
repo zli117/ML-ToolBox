@@ -1,7 +1,7 @@
 import datetime
 import sys
 import time
-from typing import Any
+from typing import Any, List
 
 
 class ProgressBar:
@@ -14,14 +14,14 @@ class ProgressBar:
             self.bar_format = '[%%-%ds](eta: %%s)%s' % (length, frmt)
         else:
             self.bar_format = '[%%-%ds]%s' % (length, frmt)
-        self.queue = None
-        self.step = None
-        self.prev_time = None
-        self.prev_percent = None
+        self.queue: List[float] = []
+        self.step: int = 0
+        self.prev_time: float = 0.0
+        self.prev_percent: float = -1.0
         self.reset()
 
     def progress(self, percent: float, *info: Any) -> None:
-        if self.prev_percent is not None and percent == self.prev_percent:
+        if percent == self.prev_percent:
             print('Error: Did not update percentage')
             return
         sys.stdout.write('\r')
@@ -42,7 +42,7 @@ class ProgressBar:
         sys.stdout.flush()
 
     def reset(self) -> None:
-        self.queue = [0] * self.max_normalize_steps
+        self.queue = [0.0] * self.max_normalize_steps
         self.step = 0
         self.prev_time = time.time()
-        self.prev_percent = -1
+        self.prev_percent = -1.0
