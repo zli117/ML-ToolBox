@@ -9,6 +9,7 @@ with open('requirements.txt', 'r') as f:
 def install(packages):
     with open(os.devnull, 'w') as fp:
         for package in packages:
+            print('Installing: ', package)
             process = Popen(['pip', 'install', package], stdout=fp)
             process.wait()
 
