@@ -6,6 +6,6 @@ install:
   - python install-deps.py
 
 script:
-  - pytest --cov=./
+  - pytest
   - pycodestyle --max-line-length=80 --count --statistics .
   - pytype --config pytype.cfg
