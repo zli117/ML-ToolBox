@@ -8,7 +8,7 @@ with open('requirements.txt', 'r') as f:
 def install(packages):
     for package in packages:
         print('Installing: %s' % package)
-        Popen(['pip', 'install', package]).wait()
+        Popen(['pip', 'install', '--progress-bar', 'off', package]).wait()
 
 
 if __name__ == '__main__':
