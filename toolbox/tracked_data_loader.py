@@ -5,8 +5,8 @@ from typing import Dict, Any, Generator, List, cast, Optional
 import torch
 from torch.utils.data import Sampler, DataLoader
 
-from toolbox.trackable import Trackable, deserialize_state
-from toolbox.tracked_dataset import TrackedDataset
+from .trackable import Trackable, deserialize_state
+from .tracked_dataset import TrackedDataset
 
 
 class _Sampler(Sampler):
