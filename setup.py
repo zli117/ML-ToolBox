@@ -12,7 +12,7 @@ if sys.version_info[1] < 7:
 
 dev_requirements = {
     'dev': [
-        'pytype>=2019.1.18',
+        'mypy>=0.660',
         'pycodestyle>=2.4.0'
     ]
 }

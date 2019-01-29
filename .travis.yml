@@ -8,4 +8,4 @@ install:
 script:
   - pytest
   - pycodestyle --max-line-length=80 --count --statistics .
-  - pytype --config pytype.cfg
+  - mypy toolbox/
