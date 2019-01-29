@@ -1,9 +1,8 @@
-from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Dict, Any, Generator, List, cast, Optional
 
 import torch
-from torch.utils.data import Sampler, DataLoader
+from torch.utils.data import Sampler, DataLoader, RandomSampler
 
 from .trackable import Trackable, deserialize_state
 from .tracked_dataset import TrackedDataset
@@ -35,7 +34,7 @@ class _Sampler(Sampler):
 
 
 @dataclass
-class TrackedDataLoader(Trackable, ABC):
+class TrackedDataLoader(Trackable):
     dataset: TrackedDataset
     loader_config: Dict[str, Any]
     step_counter: int = 0
@@ -66,16 +65,18 @@ class TrackedDataLoader(Trackable, ABC):
         loader_config = state['loader_config']
         step_counter = state['step_counter']
         init_index = state['init_index']
+        # pytype: disable=wrong-arg-count
         return TrackedDataLoader(dataset, loader_config, step_counter,
                                  init_index)
+        # pytype: enable=wrong-arg-count
 
-    @abstractmethod
     def get_sampler(self) -> Sampler:
         """
-        Factory function for creating a sampler
+        Factory function for creating a sampler. Default is RandomSampler
         Returns:
             The sampler
         """
+        return RandomSampler(self.dataset)
 
     def next_epoch(self) -> Generator[Dict[str, torch.Tensor], None, None]:
         self.step_counter %= len(self.dataset)

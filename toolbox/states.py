@@ -94,7 +94,7 @@ class Trackable(State):
         object.__setattr__(self, attr_name, value)
 
 
-def save_on_interrupt(save_path_lambda: callable, exception_handling=None):
+def save_on_interrupt(save_path_lambda, exception_handling=None):
     """
     The save on interrupt decorator. For any (member) function decorated, it
     will capture SIG_INT and save the state.

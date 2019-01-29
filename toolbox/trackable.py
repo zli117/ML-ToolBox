@@ -45,6 +45,7 @@ class Trackable(ABC):
             state[attr] = obj.serialize()
         return state
 
+    # pytype: disable=bad-return-type
     @staticmethod
     @abstractmethod
     def deserialize(state: Dict[str, Any], strict: bool = False) -> 'Trackable':
@@ -54,6 +55,7 @@ class Trackable(ABC):
             state: The state dict
             strict: Whether throw exception if the state doesn't fully match up
         """
+    # pytype: enable=bad-return-type
 
 
 def serialize_list(lst: List[Trackable]) -> List[Dict[str, Any]]:
