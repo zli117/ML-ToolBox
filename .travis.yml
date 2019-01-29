@@ -2,7 +2,7 @@ language: python
 python:
   - '3.6'
 install:
-  - pip install --progress-bar off -e .
+  - pip install -e . >> /dev/null
 
 script:
   - pytest

@@ -3,7 +3,7 @@ import sys
 from distutils.core import setup
 
 requirements = [
-    'torch>=0.5.0'
+    'torch'
 ]
 
 assert sys.version_info[0] == 3
@@ -13,7 +13,6 @@ if sys.version_info[1] < 7:
 dev_requirements = {
     'dev': [
         'pytype>=2019.1.18',
-        'torch',
         'pycodestyle>=2.4.0'
     ]
 }
