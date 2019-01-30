@@ -19,8 +19,8 @@ class StandardTrainer(BaseTrainer):
                 loss.backward()
                 # TODO: Add support for closure
                 self._optimizer.step()
-                self._curr_step += 1
                 self.trigger_call_backs('on_train_batch_end',
                                         curr_step=self._curr_step,
                                         total_steps=total_steps, loss=loss)
+                self._curr_step += 1
             self._curr_step = 0
