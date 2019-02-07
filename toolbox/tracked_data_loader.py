@@ -1,15 +1,18 @@
 from dataclasses import dataclass
-from typing import Dict, Any, Generator, List, cast, Optional
+from typing import Any, Dict, Generator, List, Optional, cast
 
 import torch
-from torch.utils.data import Sampler, DataLoader, RandomSampler
+from torch.utils.data import DataLoader, RandomSampler, Sampler
 
 from .trackable import Trackable, deserialize_state
 from .tracked_dataset import TrackedDataset
 
 
 class _Sampler(Sampler):
-    def __init__(self, sampler: Sampler, index_specified: List[int] = None,
+
+    def __init__(self,
+                 sampler: Sampler,
+                 index_specified: List[int] = None,
                  skip_index: int = 0):
         super().__init__(None)
         self._sampler = sampler
@@ -41,23 +44,22 @@ class TrackedDataLoader(Trackable):
     init_index: Optional[List[int]] = None
 
     def __post_init__(self):
-        assert self.step_counter >= 0 and not (
-                self.init_index is None and self.step_counter != 0)
+        assert self.step_counter >= 0 and not (self.init_index is None and
+                                               self.step_counter != 0)
         provided_sampler = self.get_sampler()
         assert len(self.dataset) == len(provided_sampler)
-        indices = (
-            self.init_index[self.step_counter:] if self.init_index else None)
+        indices = (self.init_index[self.step_counter:]
+                   if self.init_index else None)
         sampler = _Sampler(provided_sampler, indices)
-        self._data_loader = DataLoader(self.dataset, sampler=sampler,
-                                       **self.loader_config)
+        self._data_loader = DataLoader(
+            self.dataset, sampler=sampler, **self.loader_config)
 
     def serialize(self) -> dict:
         serialized = super().serialize()
         serialized = self.serialize_trackable_attrs(serialized, ['dataset'])
         # TODO: Deal with the case where config contains trackable
-        return self.serialize_plain_attrs(serialized, ['loader_config',
-                                                       'step_counter',
-                                                       'init_index'])
+        return self.serialize_plain_attrs(
+            serialized, ['loader_config', 'step_counter', 'init_index'])
 
     @staticmethod
     def deserialize(state: dict, strict: bool = False) -> 'TrackedDataLoader':

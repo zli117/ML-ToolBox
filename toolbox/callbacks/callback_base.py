@@ -10,6 +10,7 @@ from toolbox.tracked_data_loader import TrackedDataLoader
 
 
 class CallBack(Trackable, ABC):
+
     def on_train_epoch_begin(self, curr_epoch: int, total_epochs: int) -> None:
         """
         Called at the beginning of each training epoch

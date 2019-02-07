@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
-from typing import List, Dict, Any, TypeVar, cast, Sequence
+from typing import Any, Dict, List, Sequence, TypeVar, cast
 
 
 class Trackable(ABC):
+
     def serialize(self) -> Dict[str, Any]:
         """
         Serialize the object to a serializable dictionary
@@ -55,6 +56,7 @@ class Trackable(ABC):
             state: The state dict
             strict: Whether throw exception if the state doesn't fully match up
         """
+
     # pytype: enable=bad-return-type
 
 

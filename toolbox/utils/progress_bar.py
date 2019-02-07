@@ -5,7 +5,11 @@ from typing import Any, List
 
 
 class ProgressBar:
-    def __init__(self, length: int, fmt: str, eta: bool = True,
+
+    def __init__(self,
+                 length: int,
+                 fmt: str,
+                 eta: bool = True,
                  max_normalize_steps: int = 20):
         self.length = length
         self.max_normalize_steps = max_normalize_steps

@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Type, Dict, Tuple, List, Optional, Any
+from typing import Any, Dict, List, Optional, Tuple, Type
 
 import torch
 from torch import nn
@@ -7,8 +7,8 @@ from torch.optim import Optimizer
 
 from toolbox.callbacks.callback_base import CallBack
 from toolbox.metrics.metrics_base import Metrics
-from toolbox.trackable import (Trackable, serialize_list, deserialize_state,
-                               deserialize_list)
+from toolbox.trackable import (Trackable, deserialize_list, deserialize_state,
+                               serialize_list)
 from toolbox.tracked_data_loader import TrackedDataLoader
 from toolbox.utils.torch_utils import get_trainable_parameters
 
@@ -49,22 +49,19 @@ class BaseTrainer(Trackable):
         self.model.to(self.device)
         if self.save_optimizer and self._optimizer is not None:
             serialized['_optimizer'] = self._optimizer.state_dict()
-        serialized = self.serialize_trackable_attrs(serialized,
-                                                    ['train_loader',
-                                                     'valid_loader'])
+        serialized = self.serialize_trackable_attrs(
+            serialized, ['train_loader', 'valid_loader'])
         serialized['call_backs'] = serialize_list(self.call_backs)
         serialized['metrics'] = serialize_list(self.metrics)
-        serialized = self.serialize_plain_attrs(serialized,
-                                                ['opt_class',
-                                                 'opt_config',
-                                                 'device',
-                                                 'progress_bar_size',
-                                                 '_curr_epochs',
-                                                 '_curr_steps'])
+        serialized = self.serialize_plain_attrs(serialized, [
+            'opt_class', 'opt_config', 'device', 'progress_bar_size',
+            '_curr_epochs', '_curr_steps'
+        ])
         return serialized
 
     @staticmethod
-    def deserialize(state: Dict[str, Any], strict: bool = False,
+    def deserialize(state: Dict[str, Any],
+                    strict: bool = False,
                     model: Optional[nn.Module] = None) -> 'BaseTrainer':
         """
         Load the Trainer from a serialized dictionary
@@ -97,8 +94,7 @@ class BaseTrainer(Trackable):
         _optimizer: Optional[Optimizer] = None
         if '_optimizer' in state:
             _optimizer = opt_class(
-                get_trainable_parameters(model),
-                **opt_config)
+                get_trainable_parameters(model), **opt_config)
             # Manually moving optimizer state to device
             # https://github.com/pytorch/pytorch/issues/2830#issuecomment-336194949
             for state in _optimizer.state.values():
@@ -108,8 +104,7 @@ class BaseTrainer(Trackable):
             save_optimizer = True
         trainer = BaseTrainer(model, train_loader, valid_loader, opt_class,
                               opt_config, device, save_optimizer,
-                              progress_bar_size,
-                              call_backs, metrics)
+                              progress_bar_size, call_backs, metrics)
         trainer._curr_epochs = _curr_epochs
         trainer._curr_step = _curr_steps
         if _optimizer is not None:
@@ -174,28 +169,32 @@ class BaseTrainer(Trackable):
         """
         # Make sure the record in trainer matches up with train_loader
         assert self._curr_step == self.train_loader.step_counter
-        self.trigger_call_backs('on_train_begin', model=self.model,
-                                train_loader=self.train_loader,
-                                opt_class=self.opt_class,
-                                opt_config=self.opt_config, epochs=epochs,
-                                device=self.device,
-                                save_optimizer=self.save_optimizer)
+        self.trigger_call_backs(
+            'on_train_begin',
+            model=self.model,
+            train_loader=self.train_loader,
+            opt_class=self.opt_class,
+            opt_config=self.opt_config,
+            epochs=epochs,
+            device=self.device,
+            save_optimizer=self.save_optimizer)
 
         # Create an optimizer if not already created
         if self._optimizer is None:
             self._optimizer = self.opt_class(
-                get_trainable_parameters(self.model),
-                **self.opt_config)
+                get_trainable_parameters(self.model), **self.opt_config)
 
         try:
             while self._curr_epochs < epochs and not self._terminate:
-                self.trigger_call_backs('on_train_epoch_begin',
-                                        curr_epoch=self._curr_epochs,
-                                        total_epochs=epochs)
+                self.trigger_call_backs(
+                    'on_train_epoch_begin',
+                    curr_epoch=self._curr_epochs,
+                    total_epochs=epochs)
                 self.train_one_epoch()
-                self.trigger_call_backs('on_train_epoch_end',
-                                        curr_epoch=self._curr_epochs,
-                                        total_epochs=epochs)
+                self.trigger_call_backs(
+                    'on_train_epoch_end',
+                    curr_epoch=self._curr_epochs,
+                    total_epochs=epochs)
                 self._curr_epochs += 1
         except BaseException as e:
             self.trigger_call_backs('on_exception', exception=e)
